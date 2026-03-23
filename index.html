@@ -31,7 +31,7 @@
     --text-dim: rgba(255,255,255,0.45);
     --text-mid: rgba(255,255,255,0.75);
     --text-bright: #ffffff;
-    --empty-border: rgba(255,255,255,0.12);
+    --empty-border: rgba(255,255,255,0.35);
     --empty-bg: rgba(255,255,255,0.03);
     --gap: 8px;
     --board-w: calc(100vw - 20px);
@@ -336,7 +336,7 @@
     }
     .card, .empty-slot, .tableau-col { border-radius: 5px !important; }
     --empty-border: rgba(255,255,255,0.4);
-    .empty-slot { border-color: rgba(255,255,255,0.5); }
+    .empty-slot { border-color: rgba(255,255,255,0.7) !important; border-width: 2px !important; }
     .card-corner {
       position: relative;
       padding: 0;
@@ -808,9 +808,9 @@ function checkWin(){
     const prevLevel = level;
     level = Math.floor(winsCount / 5) + 1;
     const leveledUp = level > prevLevel;
-    // Pre-unlock win audio during active gesture
-    const winAudio = new Audio(SOUNDS['win']);
-    winAudio.volume = IS_MOBILE_AUDIO ? 0.3 : 0.35;
+    // Win audio — desktop only (mobile browser restrictions prevent reliable playback)
+    const winAudio = IS_MOBILE_AUDIO ? null : new Audio(SOUNDS['win']);
+    if (winAudio) winAudio.volume = 0.35;
 
     setTimeout(()=>{
       const m=Math.floor(elapsed/60),s=elapsed%60;
@@ -824,9 +824,8 @@ function checkWin(){
       if(leveledUp){ showLevelUp(level); playLevelUp(); }
       document.getElementById('win-overlay').classList.add('show');
       spawnConfetti();
-      // Play win sound
-      winAudio.currentTime = 0;
-      winAudio.play().catch(()=>{});
+      // Play win sound — desktop only
+      if (winAudio) { winAudio.currentTime = 0; winAudio.play().catch(()=>{}); }
     },400);
   }
 }
@@ -1142,8 +1141,8 @@ function playCardSound(key, volume) {
   playSound(key, volume);
 }
 
-function playCardFlip()  { /* removed — inconsistent on mobile */ }
-function playCardPlace() { /* removed — inconsistent on mobile */ }
+function playCardFlip()  { if (!IS_MOBILE_AUDIO) playSound('place', 0.6); }
+function playCardPlace() { if (!IS_MOBILE_AUDIO) playSound('place', 0.6); }
 function playDraw() {
   try {
     const a = new Audio(SOUNDS['draw']);
